@@ -7,7 +7,8 @@ import os
 def run_fds(infile):
 	
 	infile = str(infile)+'.fds'
-	ret = os.system("fds " + infile)
+	# ret = os.system("""osascript -e 'tell app "Terminal" \n do script "cd ~/Desktop/UN; fds """ + infile + """; exit" \n end tell'""")
+	ret = os.system(f'fds {infile}')
 	# ret = os.system("gnome-terminal -e 'fds " + infile + "' >/dev/null 2>&1")
 	#subprocess.run(['fds ', infile + '.fds'])
 	return ret

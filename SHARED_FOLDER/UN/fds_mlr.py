@@ -4,10 +4,24 @@ from math import pi
 import numpy as np
 import external_fds
 import random
+import glob
+import time
 
 def fds_tga(theta_1,theta_2,theta_3,theta_4,theta_5,theta_6):
 
-    x = random.randint(1,10)
+    t = random.randint(10,50)
+
+    time.sleep(t)
+
+    fs = glob.glob('*_tga.csv')
+    files_ = [a.replace('_tga.csv','') for a in fs]
+    files = [a.replace('test', '') for a in files_]
+    file_nums = [int(a) for a in files]
+    if file_nums:
+        x_ = max(file_nums)
+    else:
+        x_ = 0
+    x = str(x_+1)  
     chid = f'test{x}'
 
     # hr = 60,
@@ -16,13 +30,16 @@ def fds_tga(theta_1,theta_2,theta_3,theta_4,theta_5,theta_6):
     # nu = [0, theta[2], theta[5], theta[8]],
     # rho = [520, 520*nu[1], 520*nu[1]*nu[2], 520*nu[1]*nu[2]*nu[3]]
 
-    external_fds.input(chid, theta_1, theta_2, theta_3, theta_4, theta_5, theta_6)
+    external_fds.tga_input(chid, theta_1, theta_2, theta_3, theta_4, theta_5, theta_6)
     external_fds.run_fds(chid)
+    time.sleep(10)
     temp, mlr = external_fds.read_tga_fds(chid)
 
     # return the numpy array
     return temp, mlr
-   
+
+t = time.time()
+
 # Create a model from the coffee_cup function and add labels
 model = un.Model(run=fds_tga, labels=["Temperature (C)", "Total MLR (1/s)"])
 
@@ -38,9 +55,12 @@ s3_dist = cp.Uniform(0.0, 0.1) # 0.002
 parameters = {"theta_1": A2_dist, "theta_2": E2_dist, "theta_3": s2_dist, "theta_4": A3_dist, "theta_5": E3_dist, "theta_6": s3_dist}
 
 # Set up the uncertainty quantification
-UQ = un.UncertaintyQuantification(model=model, parameters=parameters, CPUs = 2)
+UQ = un.UncertaintyQuantification(model=model, parameters=parameters, CPUs = 1)
 
 # Perform the uncertainty quantification using
 # polynomial chaos with point collocation (by default)
 # We set the seed to easier be able to reproduce the result
-data = UQ.quantify()
+data = UQ.quantify(method = 'pc')
+
+elapsed = time.time() - t
+print(f'elapsed time: {elapsed}')
